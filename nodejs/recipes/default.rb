@@ -1,6 +1,6 @@
 #
 # Author:: Marius Ducea (marius@promethost.com)
-# Cookbook Name:: etckeeper
+# Cookbook Name:: nodejs
 # Recipe:: default
 #
 # Copyright 2010, Promet Solutions
@@ -18,25 +18,26 @@
 # limitations under the License.
 #
 
-include_recipe "git"
+include_recipe "build-essential"
 
-return unless ["ubuntu", "debian"].include?(node[:platform])
-
-package "etckeeper"
-
-cookbook_file "/etc/etckeeper/etckeeper.conf" do
-    source "etckeeper.conf"
-    mode 0644
+case node[:platform]
+  when "centos","redhat","fedora"
+    package "openssl-devel"
+  when "debian","ubuntu"
+    package "libssl-dev"
 end
 
-#Initialize the etckeeper repo for /etc
-script "init_etckeeper" do
-    interpreter "bash"
-    user "root"
-    code <<-EOH
-	etckeeper init
-	cd /etc
-	git commit -a -m "initial import"
-    EOH
-    not_if "test -d /etc/.git"
+bash "install nodejs from source" do
+  cwd "/usr/local/src"
+  user "root"
+  code <<-EOH
+    wget http://nodejs.org/dist/node-v#{node[:nodejs][:version]}.tar.gz && \
+    tar zxf node-v#{node[:nodejs][:version]}.tar.gz && \
+    cd node-v#{node[:nodejs][:version]} && \
+    ./configure --prefix=#{node[:nodejs][:dir]} && \
+    make && \
+    make install
+  EOH
+  not_if {File.exists?("/usr/local/src/node-v#{node[:nodejs][:version]}/node")}
 end
+

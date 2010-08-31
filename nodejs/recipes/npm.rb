@@ -1,7 +1,7 @@
 #
 # Author:: Marius Ducea (marius@promethost.com)
-# Cookbook Name:: etckeeper
-# Recipe:: default
+# Cookbook Name:: nodejs
+# Recipe:: npm
 #
 # Copyright 2010, Promet Solutions
 #
@@ -18,25 +18,17 @@
 # limitations under the License.
 #
 
-include_recipe "git"
+include_recipe "nodejs"
 
-return unless ["ubuntu", "debian"].include?(node[:platform])
-
-package "etckeeper"
-
-cookbook_file "/etc/etckeeper/etckeeper.conf" do
-    source "etckeeper.conf"
-    mode 0644
+bash "install npm - package manager for node" do
+  cwd "/usr/local/src"
+  user "root"
+  code <<-EOH
+    mkdir -p npm-v#{node[:nodejs][:npm]} && \
+    cd npm-v#{node[:nodejs][:npm]}
+    curl -L http://github.com/isaacs/npm/tarball/v#{node[:nodejs][:npm]} | tar xzf - --strip-components=1 && \
+    make uninstall install
+  EOH
+  not_if {File.exists?("/usr/local/bin/npm-#{node[:nodejs][:npm]}")}
 end
 
-#Initialize the etckeeper repo for /etc
-script "init_etckeeper" do
-    interpreter "bash"
-    user "root"
-    code <<-EOH
-	etckeeper init
-	cd /etc
-	git commit -a -m "initial import"
-    EOH
-    not_if "test -d /etc/.git"
-end
