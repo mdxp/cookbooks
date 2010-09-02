@@ -1,0 +1,29 @@
+{
+    "recipes": {
+    },
+    "replacing": {
+    },
+    "attributes": {
+    },
+    "maintainer_email": "marius@promethost.com",
+    "groupings": {
+    },
+    "dependencies": {
+    },
+    "recommendations": {
+    },
+    "long_description": "= DESCRIPTION:\n\n= REQUIREMENTS:\n\n= ATTRIBUTES: \n\n= USAGE:\n\n",
+    "suggestions": {
+    },
+    "platforms": {
+    },
+    "license": "Apache 2.0",
+    "version": "0.1.0",
+    "conflicting": {
+    },
+    "name": "timezone",
+    "providing": {
+    },
+    "description": "Configures timezone",
+    "maintainer": "Promet Solutions"
+  }
