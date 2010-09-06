@@ -18,11 +18,22 @@
 # limitations under the License.
 #
 
-node[:filesystem].keys.select { |k| k =~ /\A\/dev\// }.map do |d|
-    mount "#{node[:filesystem][d][:mount]}" do
-	device "#{d}"
-	fstype "#{node[:filesystem][d][:fs_type]}"
-	options node[:filesystem][d][:mount_options] << "noatime"
-	action [:enable]
-    end
+#node[:filesystem].keys.select { |k| k =~ /\A\/dev\// }.map do |d|
+#    mount "#{node[:filesystem][d][:mount]}" do
+#	device "#{d}"
+#	fstype "#{node[:filesystem][d][:fs_type]}"
+#	options node[:filesystem][d][:mount_options] << "noatime"
+#	action [:enable]
+#    end
+#end
+
+## Unfortunately the above method is not working as expected, so I'll have to use sed to modify fstab directly
+## Note: it will not remount the filesystems and only change fstab.
+
+bash "enable noatime" do
+  code <<-EOH
+    sed -i -e '/noatime\\|noauto\\|swap\\|proc\\|nfs\\|^#/ !s/defaults\\|remount-ro/&,noatime/g' /etc/fstab
+  EOH
+  only_if "grep -v 'noatime\\|noauto\\|swap\\|proc\\|nfs\\|^#' /etc/fstab"
 end
+
