@@ -1,8 +1,49 @@
 = DESCRIPTION:
 
+Installs and configures tomcat from debian/ubuntu packages.
+
 = REQUIREMENTS:
 
-= ATTRIBUTES: 
+== Platform:
+
+Tested on Ubuntu 10.04, Debian Lenny. For Centos,RHEL use the stock opscode cookbook.
+
+== Cookbooks:
+
+Opscode cookbooks (http://github.com/opscode/cookbooks/tree/master)
+
+* java (you change this to java_sun if you want to use sun-java instead of openjdk)
+
+= ATTRIBUTES:
+
+* tomcat[:user] - tomcat user (default tomcat6)
+* tomcat[:group] - tomcat group (default tomcat6)
+* tomcat[:java_home] - change the JAVA_HOME if using a different java installation (default /usr/lib/jvm/java-6-openjdk)
+* tomcat[:java_opts] - customize JAVA_OPTS (default "-Djava.awt.headless=true -Xmx128M")
+* tomcat[:security] - java security enabled for tomcat? yes/no (default no)
 
 = USAGE:
 
+Include the tomcat recipe to install tomcat on your system:
+
+  include_recipe "tomcat"
+
+customize the attributes as needed in a role, or on the node.
+
+= LICENSE and AUTHOR:
+
+Author:: Marius Ducea (marius@promethost.com)
+
+Copyright:: 2010, Promet Solutions
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
