@@ -22,7 +22,7 @@ include_recipe "build-essential"
 include_recipe "xml"
 include_recipe "imagemagick"
 include_recipe "git"
-include_recipe "mongodb"
+include_recipe "mongodb-debs"
 
 gem_package "bundler"
 package "libxslt1-dev"

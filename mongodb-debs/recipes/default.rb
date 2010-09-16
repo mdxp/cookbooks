@@ -18,7 +18,7 @@
 # limitations under the License.
 #
 
-include_recipe "mongodb::repo"
+include_recipe "mongodb-debs::repo"
 
 package "mongodb-stable"
 

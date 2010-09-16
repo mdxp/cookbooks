@@ -1,7 +1,6 @@
 = DESCRIPTION:
 
-Installs diaspora based on the instructions from http://github.com/diaspora/diaspora
-It will install also mongodb from debian/ubuntu packages like:
+Installs mongodb from debian pacakges based on the instructions from
 http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages
 
 = REQUIREMENTS:
@@ -10,20 +9,11 @@ http://www.mongodb.org/display/DOCS/Ubuntu+and+Debian+packages
 
 Tested on Ubuntu 10.04, Debian Lenny.
 
-== Cookbooks:
-
-Opscode cookbooks (http://github.com/opscode/cookbooks/tree/master)
-
-* build-essential
-* git
-* imagemagick
-* xml
-
 = USAGE:
 
-Include the diaspora recipe to install diaspora on your system:
+Include the mongodb-debs recipe to install mongodb on your system:
 
-  include_recipe "diaspora"
+  include_recipe "mongodb-debs"
 
 = LICENSE and AUTHOR:
 
