@@ -34,6 +34,6 @@ bash "enable noatime" do
   code <<-EOH
     sed -i -e '/noatime\\|noauto\\|swap\\|proc\\|nfs\\|^#/ !s/defaults\\|remount-ro/&,noatime/g' /etc/fstab
   EOH
-  only_if "grep -v 'noatime\\|noauto\\|swap\\|proc\\|nfs\\|^#' /etc/fstab"
+  only_if "grep -v 'noatime\\|noauto\\|swap\\|proc\\|devpts\\|nfs\\|^#' /etc/fstab"
 end
 
