@@ -29,6 +29,6 @@ default[:drupal][:db][:user] = "drupal"
 set_unless[:drupal][:db][:password] = secure_password
 default[:drupal][:src] = Chef::Config[:file_cache_path]
 
-default[:drupal][:drush][:version] = "3.3"
-default[:drupal][:drush][:checksum] = "9b7b8cf0c4426a5b3211cb349130ca9ef8222bb6b0a8dc7fdc24a8be4edd9755"
+default[:drupal][:drush][:version] = "4.2"
+default[:drupal][:drush][:checksum] = "6ab024cdec530223a008fb3ec3e5a94f478c8a999038ffc181561fbb4e7c3872"
 default[:drupal][:drush][:dir] = "/usr/local/drush"

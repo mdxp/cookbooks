@@ -20,9 +20,9 @@
 
 include_recipe %w{php::php5 php::module_mysql}
 
-remote_file "#{node[:drupal][:src]}/drush-6.x-#{node[:drupal][:drush][:version]}.tar.gz" do
+remote_file "#{node[:drupal][:src]}/drush-All-versions-#{node[:drupal][:drush][:version]}.tar.gz" do
   checksum node[:drupal][:drush][:checksum]
-  source "http://ftp.drupal.org/files/projects/drush-6.x-#{node[:drupal][:drush][:version]}.tar.gz"
+  source "http://ftp.drupal.org/files/projects/drush-All-versions-#{node[:drupal][:drush][:version]}.tar.gz"
   mode "0644"
 end
 
@@ -35,7 +35,7 @@ end
 
 execute "untar-drush" do
   cwd node[:drupal][:drush][:dir]
-  command "tar --strip-components 1 -xzf #{node[:drupal][:src]}/drush-6.x-#{node[:drupal][:drush][:version]}.tar.gz"
+  command "tar --strip-components 1 -xzf #{node[:drupal][:src]}/drush-All-versions-#{node[:drupal][:drush][:version]}.tar.gz"
   not_if "/usr/local/bin/drush status drush-version --pipe | grep #{node[:drupal][:drush][:version]}"
 end
 
