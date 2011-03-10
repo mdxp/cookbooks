@@ -32,3 +32,5 @@ default[:drupal][:src] = Chef::Config[:file_cache_path]
 default[:drupal][:drush][:version] = "4.2"
 default[:drupal][:drush][:checksum] = "6ab024cdec530223a008fb3ec3e5a94f478c8a999038ffc181561fbb4e7c3872"
 default[:drupal][:drush][:dir] = "/usr/local/drush"
+
+default[:drupal][:modules] = ["views", ["webform","3.9"]]
