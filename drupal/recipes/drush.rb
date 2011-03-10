@@ -43,8 +43,8 @@ link "/usr/local/bin/drush" do
   to "#{node[:drupal][:drush][:dir]}/drush"
 end
 
-execute "install-drush-make" do
-  cwd node[:drupal][:drush][:dir]
-  command "/usr/local/bin/drush dl drush_make"
-  not_if { File.directory?("/root/.drush/drush_make")}
-end
+#execute "install-drush-make" do
+#  cwd node[:drupal][:drush][:dir]
+#  command "/usr/local/bin/drush dl drush_make"
+#  not_if { File.directory?("/root/.drush/drush_make")}
+#end
