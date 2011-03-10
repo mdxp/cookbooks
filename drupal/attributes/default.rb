@@ -18,8 +18,8 @@
 # limitations under the License.
 #
 
-default[:drupal][:version] = "6.19"
-default[:drupal][:checksum] = "b2067b18408321af8595715e2c1fb0e9f20c188b4276bb616c066ff6ab26ee88"
+default[:drupal][:version] = "7.0"
+default[:drupal][:checksum] = "62e4146b2a2208d0772cef6578205b369f361b2079bf3fa9408e92f5419902e8"
 default[:drupal][:dir] = "/var/www/drupal"
 default[:drupal][:db][:database] = "drupal"
 default[:drupal][:db][:user] = "drupal"
@@ -29,8 +29,9 @@ default[:drupal][:db][:user] = "drupal"
 set_unless[:drupal][:db][:password] = secure_password
 default[:drupal][:src] = Chef::Config[:file_cache_path]
 
-default[:drupal][:drush][:version] = "4.2"
-default[:drupal][:drush][:checksum] = "6ab024cdec530223a008fb3ec3e5a94f478c8a999038ffc181561fbb4e7c3872"
+default[:drupal][:drush][:version] = "4.x-dev"
+default[:drupal][:drush][:checksum] = "86bf384f5d70793a6f41d0e4a0d25fa1dceaccb17c9f7db1c5bf0397be6ab64a"
 default[:drupal][:drush][:dir] = "/usr/local/drush"
 
-default[:drupal][:modules] = ["views", ["webform","3.9"]]
+default[:drupal][:modules] = ["views", "webform"]
+

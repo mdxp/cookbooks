@@ -20,6 +20,7 @@
 
 include_recipe "apache2"
 include_recipe %w{php::php5 php::module_mysql}
+include_recipe "drupal::drush"
 include_recipe "mysql::server"
 Gem.clear_paths
 require 'mysql'
@@ -52,23 +53,25 @@ execute "create #{node[:drupal][:db][:database]} database" do
 end
 
 #install drupal
-remote_file "#{node[:drupal][:src]}/drupal-#{node[:drupal][:version]}.tar.gz" do
-  checksum node[:drupal][:checksum]
-  source "http://ftp.drupal.org/files/projects/drupal-#{node[:drupal][:version]}.tar.gz"
-  mode "0644"
-end
+#remote_file "#{node[:drupal][:src]}/drupal-#{node[:drupal][:version]}.tar.gz" do
+#  checksum node[:drupal][:checksum]
+#  source "http://ftp.drupal.org/files/projects/drupal-#{node[:drupal][:version]}.tar.gz"
+#  mode "0644"
+#end
 
-directory "#{node[:drupal][:dir]}" do
-  owner "root"
-  group "root"
-  mode "0755"
-  action :create
-end
+#directory "#{node[:drupal][:dir]}" do
+#  owner "root"
+#  group "root"
+#  mode "0755"
+#  action :create
+#end
 
-execute "untar-drupal" do
-  cwd node[:drupal][:dir]
-  command "tar --strip-components 1 -xzf #{node[:drupal][:src]}/drupal-#{node[:drupal][:version]}.tar.gz"
-  creates "#{node[:drupal][:dir]}/index.php"
+execute "download-and-install-drupal" do
+  cwd  File.dirname(node[:drupal][:dir])
+  command "#{node[:drupal][:drush][:dir]}/drush -y dl drupal-#{node[:drupal][:version]} --destination=#{File.dirname(node[:drupal][:dir])} --drupal-project-rename=#{File.basename(node[:drupal][:dir])} && \
+  #{node[:drupal][:drush][:dir]}/drush -y site-install -r #{node[:drupal][:dir]} --account-name=admin --account-pass=mdtest --site-name=Drupal \
+  --db-url=mysql://#{node[:drupal][:db][:user]}:'#{node[:drupal][:db][:password]}'@localhost/#{node[:drupal][:db][:database]}"
+  not_if "#{node[:drupal][:drush][:dir]}/drush -r #{node[:drupal][:dir]} status | grep #{node[:drupal][:version]}"
 end
 
 if node.has_key?("ec2")
@@ -77,24 +80,39 @@ else
   server_fqdn = node.fqdn
 end
 
-log "Navigate to 'http://#{server_fqdn}/install.php' to complete the drupal installation" do
-  action :nothing
-end
+#log "Navigate to 'http://#{server_fqdn}/install.php' to complete the drupal installation" do
+#  action :nothing
+#end
 
 directory "#{node[:drupal][:dir]}/sites/default/files" do
   mode "0777"
   action :create
 end
 
-template "#{node[:drupal][:dir]}/sites/default/settings.php" do
-  source "settings.php.erb"
-  mode "0644"
-  variables(
-    :database        => node[:drupal][:db][:database],
-    :user            => node[:drupal][:db][:user],
-    :password        => node[:drupal][:db][:password]
-  )
-  notifies :write, resources(:log => "Navigate to 'http://#{server_fqdn}/install.php' to complete the drupal installation")
+#template "#{node[:drupal][:dir]}/sites/default/settings.php" do
+#  source "settings.php.erb"
+#  mode "0644"
+#  variables(
+#    :database        => node[:drupal][:db][:database],
+#    :user            => node[:drupal][:db][:user],
+#    :password        => node[:drupal][:db][:password]
+#  )
+#  notifies :write, resources(:log => "Navigate to 'http://#{server_fqdn}/install.php' to complete the drupal installation")
+#end
+
+if node[:drupal][:modules]
+  node[:drupal][:modules].each do |m|
+    if m.is_a?Array
+      drupal_module m.first do
+        version m.last
+        dir node[:drupal][:dir]
+      end
+    else
+      drupal_module m do
+        dir node[:drupal][:dir]
+      end
+    end
+  end
 end
 
 web_app "drupal" do
