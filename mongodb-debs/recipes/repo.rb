@@ -21,7 +21,7 @@
 return unless ["ubuntu", "debian"].include?(node[:platform])
 
 execute "request mongodb key" do
-  command "gpg --keyserver keyserver.ubuntu.com --recv-keys 7F0CEB10"
+  command "gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 7F0CEB10"
   not_if "gpg --list-keys 7F0CEB10"
 end
 
