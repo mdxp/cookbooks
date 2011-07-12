@@ -33,15 +33,15 @@ search(:users, node[:active_groups].collect {|gr| "groups:#{gr.to_s}" }.join(" O
        group active_grp.first.to_s
        mode 0700
     end
-  end
 
-  template "#{home_dir}/.ssh/authorized_keys" do
-     source "authorized_keys.erb"
-     action :create
-     owner user['id']
-     group active_grp.first.to_s
-     variables(:keys => user['ssh_key'])
-     mode 0600
+    template "#{home_dir}/.ssh/authorized_keys" do
+       source "authorized_keys.erb"
+      action :create
+      owner user['id']
+       group active_grp.first.to_s
+       variables(:keys => user['ssh_key'])
+       mode 0600
+    end
   end
   
   if (user['local_files'] == true )
