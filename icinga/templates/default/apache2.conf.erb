@@ -1,0 +1,42 @@
+<VirtualHost *:80>
+  ServerAdmin     <%= node['icinga']['sysadmin_email'] %>
+  ServerName      <%= node[:fqdn] %>
+  ServerAlias     icinga icinga.<%= node.chef_environment =~ /^_default$/ ? "default" : node.chef_environment%>.<%= @public_domain %> icinga.<%= @public_domain %>
+  DocumentRoot    <%= node['icinga']['docroot'] %>
+  CustomLog       <%= node['icinga']['log_dir'] %>/apache_access.log combined
+  ErrorLog        <%= node['icinga']['log_dir'] %>/apache_error.log
+
+  ScriptAlias /icinga/cgi-bin "/usr/local/icinga/sbin"
+  Alias /icinga <%= node['icinga']['docroot'] %>
+
+  <Directory "/usr/local/icinga/sbin">
+  #  SSLRequireSSL
+     Options ExecCGI
+     AllowOverride None
+     Order allow,deny
+     Allow from all
+  #  Order deny,allow
+  #  Deny from all
+  #  Allow from 127.0.0.1
+     AuthName "Icinga Access"
+     AuthType Basic
+     AuthUserFile "<%= node['icinga']['conf_dir'] %>/htpasswd.users"
+     Require valid-user
+  </Directory>
+
+  <Directory "<%= node['icinga']['conf_dir'] %>">
+  #  SSLRequireSSL
+     Options None
+     AllowOverride All
+     Order allow,deny
+     Allow from all
+  #  Order deny,allow
+  #  Deny from all
+  #  Allow from 127.0.0.1
+     AuthName "Icinga Access"
+     AuthType Basic
+     AuthUserFile "<%= node['icinga']['conf_dir'] %>/htpasswd.users"
+     Require valid-user
+  </Directory>
+</VirtualHost>
+
