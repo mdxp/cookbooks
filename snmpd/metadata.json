@@ -1,0 +1,29 @@
+{
+  "conflicting": {
+  },
+  "long_description": "= DESCRIPTION:\n\n= REQUIREMENTS:\n\n= ATTRIBUTES: \n\n= USAGE:\n\n",
+  "recipes": {
+  },
+  "attributes": {
+  },
+  "providing": {
+  },
+  "dependencies": {
+  },
+  "maintainer": "Promet Solutions",
+  "replacing": {
+  },
+  "platforms": {
+  },
+  "license": "Apache 2.0",
+  "maintainer_email": "marius@promethost.com",
+  "version": "0.1.0",
+  "groupings": {
+  },
+  "recommendations": {
+  },
+  "name": "snmpd",
+  "suggestions": {
+  },
+  "description": "Installs/Configures snmpd"
+}

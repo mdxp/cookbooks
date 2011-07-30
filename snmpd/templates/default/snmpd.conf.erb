@@ -1,0 +1,26 @@
+<% @monitoring_ips.each do |ip| -%>
+com2sec local <%= sprintf("%-18s", ip + "/32") %> <%= @community %>
+<% end -%>
+
+group MyROGroup v1  local
+group MyROGroup v2c local
+group MyROGroup usm local
+
+view all included .1 80
+
+access MyROGroup "" any noauth exact all none none
+
+syslocation <%= @syslocation %>
+syscontact <%= @syscontact %>
+<% unless @execs.empty? -%>
+
+<% @execs.each do |e| -%>
+exec <%= e[:name] %> <%= e[:command] %>
+<% end -%>
+<% end -%>
+<% unless @disks.empty? -%>
+
+<% @disks.each do |d| -%>
+disk <%= d %>
+<% end -%>
+<% end -%>
