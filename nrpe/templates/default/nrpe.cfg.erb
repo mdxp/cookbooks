@@ -1,0 +1,39 @@
+pid_file=/var/run/nrpe.pid
+server_port=5666
+server_address=<%= @ip %>
+nrpe_user=nagios
+nrpe_group=adm
+allowed_hosts=<%= node[:nrpe][:allowed_hosts] %>
+dont_blame_nrpe=0
+# command_prefix=/usr/bin/sudo
+debug=0
+command_timeout=60
+connection_timeout=300
+
+# Scan for errors in various logs
+command[apache_error_log]=<%= node['nrpe']['plugin_dir'] %>/check_logfiles -t 90 -f /etc/nagios/checklogs/apache.cfg
+command[system_log]=<%= node['nrpe']['plugin_dir'] %>/check_logfiles -f /etc/nagios/checklogs/base.cfg
+command[lighttpd_log]=<%= node['nrpe']['plugin_dir'] %>/check_logfiles -f /etc/nagios/checklogs/lighttpd.cfg
+command[mail_log]=<%= node['nrpe']['plugin_dir'] %>/check_logfiles -f /etc/nagios/checklogs/mail.cfg
+
+# loadavg, disk space
+command[check_load]=<%= node['nrpe']['plugin_dir'] %>/check_load -w <%= node[:nrpe][:load][:warning] %> -c <%= node[:nrpe][:load][:critical] %>
+command[check_all_disks]=<%= node['nrpe']['plugin_dir'] %>/check_disk -w <%= node[:nrpe][:free_disk][:warning] %>% -c <%= node[:nrpe][:free_disk][:critical] %>% -A -x /dev/shm -X nfs -i /boot
+command[check_zombie_procs]=<%= node['nrpe']['plugin_dir'] %>/check_procs -w 5 -c 10 -s Z
+command[check_total_procs]=<%= node['nrpe']['plugin_dir'] %>/check_procs -w 500 -c 800
+command[check_swap]=<%= node['nrpe']['plugin_dir'] %>/check_swap -w '50%' -c '25%'
+command[check_mem]=<%= node['nrpe']['plugin_dir'] %>/check_mem.sh -w <%= node['nrpe']['free_memory']['warning'] %> -c <%= node['nrpe']['free_memory']['critical'] %> -p
+command[check_chef_client]=<%= node['nrpe']['plugin_dir'] %>/check_procs -w 1:2 -c 1:2 -C chef-client
+command[check_ntp_time]=<%= node['nrpe']['plugin_dir'] %>/check_ntp_time -H 0.pool.ntp.org
+
+<% if node[:roles].include?("db-master") %>
+command[check_mysql]=<%= node['nrpe']['plugin_dir'] %>/check_mysql -u root
+<% end -%>
+<% if node[:roles].include?("db-slave") %>
+command[check_mysql_slave]=<%= node['nrpe']['plugin_dir'] %>/check_mysql -u root -S -w 60 -c 600
+<% end -%>
+
+#RAID
+command[check_raid]=<%= node['nrpe']['plugin_dir'] %>/check_linux_raid
+#HW_RAID
+command[check_hw_raid]=<%= node['nrpe']['plugin_dir'] %>/check_aacraid.pl

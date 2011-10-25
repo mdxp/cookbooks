@@ -1,0 +1,191 @@
+#!/usr/bin/perl -w
+
+# check_megaraid_sas Nagios plugin
+# Copyright (C) 2007  Jonathan Delgado, delgado@molbio.mgh.harvard.edu
+# 
+# This program is free software; you can redistribute it and/or
+# modify it under the terms of the GNU General Public License
+# as published by the Free Software Foundation; either version 2
+# of the License, or (at your option) any later version.
+# 
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU General Public License for more details.
+# 
+# You should have received a copy of the GNU General Public License
+# along with this program; if not, write to the Free Software
+# Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301, USA.
+# 
+# 
+# Nagios plugin to monitor the status of volumes attached to a LSI Megaraid SAS 
+# controller, such as the Dell PERC5/i and PERC5/e. If you have any hotspares 
+# attached to the controller, you can specify the number you should expect to 
+# find with the '-s' flag.
+#
+# The paths for the Nagios plugins lib and MegaCli may need to me changed.
+#
+# $Author: delgado $
+# $Revision: #3 $ $Date: 2007/06/07 $
+
+use strict;
+use Getopt::Std;
+use lib "/usr/lib/nagios/plugins";
+use utils qw(%ERRORS);
+
+our($opt_h, $opt_s);
+
+
+getopts('hs:');
+
+if ( $opt_h ) {
+	print "usage w/o hotspare: $0\n";
+	print "      w/  hotspare: $0 -s <number of hotspares>\n";
+	exit;
+}
+
+my $megacli = 'sudo /usr/sbin/MegaCli64';
+
+
+my ($adapters);
+my $hotspares = 0;
+my $hotsparecount = 0;
+my $pdbad = 0;
+my $pdcount = 0;
+my $pderrors = 0;
+my $result = '';
+my $status = 'OK';
+
+sub max_state ($$) {
+	my ($current, $compare) = @_;
+	
+	if (($compare eq 'CRITICAL') || ($compare eq 'CRITICAL')) {
+		return 'CRITICAL';
+	} elsif ($compare eq 'OK') {
+		return $current;
+	} elsif ($compare eq 'WARNING') {
+		return 'WARNING';
+	} elsif (($compare eq 'UNKNOWN') && ($current eq 'OK')) {
+		return 'UNKNOWN';
+	} else {
+		return $current;
+	}
+}
+
+
+if ( $opt_s ) {
+	$hotspares = $opt_s;
+}
+
+# Get the number of RAID controllers we have
+open (ADPCOUNT, "$megacli -adpCount |")  
+	|| die "error: Could not execute MegaCli -adpCount";
+
+while (<ADPCOUNT>) {
+	if ( m/Controller Count:\s*(\d+)/ ) {
+		$adapters = $1;
+		last;
+	}
+}
+close ADPCOUNT;
+
+ADAPTER: for ( my $adp = 0; $adp < $adapters; $adp++ ) {
+	# Get the number of logical drives on this adapter
+	open (LDGETNUM, "$megacli -LdGetNum -a$adp |") 
+		|| die "error: Could not execute $megacli -LdGetNum -a$adp";
+	
+	my ($ldnum);
+	while (<LDGETNUM>) {
+		if ( m/Number of Virtual drives configured on adapter \d:\s*(\d+)/ ) {
+			$ldnum = $1;
+			last;
+		}
+	}
+	close LDGETNUM;
+	
+	LDISK: for ( my $ld = 0; $ld < $ldnum; $ld++ ) {
+		# Get info on this particular logical drive
+		open (LDINFO, "$megacli -LdInfo -L$ld -a$adp |") 
+			|| die "error: Could not execute $megacli -LdInfo -L$ld -a$adp";
+			
+		my ($size, $unit, $raidlevel, $ldpdcount, $state);
+		while (<LDINFO>) {
+			if ( m/Size:\s*((\d+)(MB|GB|TB))/ ) {
+				$size = $2;
+				$unit = $3;
+				# Adjust MB to GB if that's what we got
+				if ( $unit eq 'MB' ) {
+					$size = sprintf( "%.0f", ($size / 1024) );
+					$unit= 'GB';
+				}
+			} elsif ( m/State:\s*(\w+)/ ) {
+				$state = $1;
+				if ( $state ne 'Optimal' ) {
+					$status = 'CRITICAL';
+				}
+			} elsif ( m/Number Of Drives:\s*(\d+)/ ) {
+				$ldpdcount = $1;
+			} elsif ( m/RAID Level: Primary-(\d)/ ) {
+				$raidlevel = $1;
+			}
+		}
+		close LDINFO;
+		
+		$result .= "$adp:$ld:RAID-$raidlevel:$ldpdcount drives:$size$unit:$state ";
+		
+	} #LDISK
+	close LDINFO;
+	
+	# Get info on physical disks for this adapter
+	open (PDLIST, "$megacli -PdList  -a$adp |") 
+		|| die "error: Could not execute $megacli -PdList -a$adp";
+	
+	my ($slotnumber,$fwstate);
+	PDISKS: while (<PDLIST>) {
+		if ( m/Slot Number:\s*(\d+)/ ) {
+			$slotnumber = $1;
+			$pdcount++ unless ( $slotnumber == 255 );
+		} elsif ( m/Error Count:\s*(\d+)/ ) {
+			$pderrors += $1;
+		} elsif ( m/Predictive Failure Count:\s*(\d+)/ ) {
+			$pderrors += $1;
+		} elsif ( m/Firmware state:\s*(\w+)/ ) {
+			$fwstate = $1;
+			if ( $fwstate eq 'Hotspare' ) {
+				$hotsparecount++;
+			} elsif ( $fwstate eq 'Online' ) {
+				# Do nothing
+			} elsif ( $slotnumber != 255 ) {
+				$pdbad++;
+				$status = 'CRITICAL';
+			}
+		}
+	} #PDISKS
+	close PDLIST;
+}
+
+$result .= "Drives:$pdcount ";
+
+# Any bad disks?
+if ( $pdbad ) {
+	$result .= "$pdbad Bad Drives ";
+}
+
+# Were there any errors?
+if ( $pderrors ) {
+	$result .= "($pderrors Errors) ";
+	$status = max_state($status, 'WARNING');
+}
+
+# Do we have as many hotspares as expected (if any)
+if ( $hotspares ) {
+	if ( $hotsparecount < $hotspares ) {
+		$status = max_state($status, 'WARNING');
+		$result .= "Hotspare(s):$hotsparecount (of $hotspares)";
+	} else {
+		$result .= "Hotspare(s):$hotsparecount";
+	}
+}
+
+print STDOUT "$status: $result\n";
+exit $ERRORS{$status};
