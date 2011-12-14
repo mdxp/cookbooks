@@ -1,4 +1,11 @@
-package "libshadow-ruby1.8"
+package "ruby-shadow" do
+  package_name value_for_platform(
+    [ "centos", "redhat", "fedora"] => { "default" => "ruby-shadow" },
+    ["debian", "ubuntu"] => { "default" => "libshadow-ruby1.8" },
+    "default" => "ruby-shadow"
+  )
+  action :install
+end
 
 # ensure active groups exist and can be used for new users
 node[:active_groups].each do |agroup|
