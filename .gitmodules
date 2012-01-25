@@ -1,0 +1,3 @@
+[submodule "icinga"]
+	path = icinga
+	url = git://github.com/mdxp/icinga-cookbook.git
