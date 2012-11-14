@@ -20,6 +20,17 @@
 
 return unless ["ubuntu", "debian"].include?(node[:platform])
 
+case node["platform"]
+when "ubuntu"
+  if (8.04..9.04).include?(node["platform_version"].to_f)
+    apt_repo = "mongodb.list.sysvinit.erb"
+  else
+    apt_repo = "mongodb.list.upstart.erb"
+  end
+when "debian"
+  apt_repo = "mongodb.list.sysvinit.erb"
+end
+
 execute "request mongodb key" do
   command "gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys 7F0CEB10"
   not_if "gpg --list-keys 7F0CEB10"
@@ -31,6 +42,7 @@ execute "install mongodb key" do
 end
 
 template "/etc/apt/sources.list.d/mongodb.list" do
+  source apt_repo
   mode 0644
 end
 
